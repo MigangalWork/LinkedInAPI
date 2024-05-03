@@ -8,10 +8,13 @@ class DatabaseConnection:
 
     Base = declarative_base()
 
-    def __init__(self) -> None:
-        self.engine = create_engine(Env.DATABASE_HOST, connect_args={'check_same_thread': False})
-        self.session_factory = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-        self.Base.metadata.create_all(self.engine)
+    @classmethod
+    def main_database_connection(cls) -> None:
+        cls.engine = create_engine(Env.DATABASE_HOST, connect_args={'check_same_thread': False})
+        cls.session_factory = sessionmaker(autocommit=False, autoflush=False, bind=cls.engine)
+        cls.Base.metadata.create_all(bind=cls.engine)
 
-    def create_session(self):
-        return self.session_factory()
+    @classmethod
+    def create_session(cls):
+        return cls.session_factory()
+    

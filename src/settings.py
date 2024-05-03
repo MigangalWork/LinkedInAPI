@@ -5,6 +5,11 @@ class Env:
 
     DATABASE_HOST: str
     DATABASE_PASSWORD: str
+    WEBHOOK_URL: str
+    LINKEDIN_API_URL: str
+    HOST: str
+    PORT: str
+    RELOAD: str
 
     @classmethod
     def main_set_env(cls):

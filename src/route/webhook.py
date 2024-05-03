@@ -1,3 +1,4 @@
+from random import randint
 import requests
 import json
 from fastapi import APIRouter, FastAPI, BackgroundTasks
@@ -38,7 +39,24 @@ def get_profile_description(profile_url: str) -> str:
     
     return response.json()
 
-def send_notification(profile_name: str) -> bool:
+def get_profile_description_mock(profile_url: str) -> str:
+    """
+    This mocks the function to fetch profile description from LinkedIn API.
+
+    Parameters:
+    - profile_url: URL of the LinkedIn profile to fetch the description.
+
+    Returns:
+    Dictionary of the LinkedIn profile data.
+    """
+    response = None
+    if randint(0,1):
+        response = str(randint(0, 1000))
+    
+    return response
+
+
+def send_notification(profile_name: str, mock: bool = False) -> bool:
     """
     Function to send a notification with the updated profile name.
 
@@ -48,6 +66,9 @@ def send_notification(profile_name: str) -> bool:
     Returns:
     True if the notification is successfully sent, False otherwise.
     """
+    if mock:
+        return True
+    
     profile_data: dict = {
         'profile updated': profile_name
         }
@@ -67,7 +88,7 @@ def send_notification(profile_name: str) -> bool:
 
     return status_code == 200
 
-async def profile_update_check():
+async def profile_update_check(loop: bool = True):
     """
     Background task to periodically check for profile updates. This function runs indefinitely.
 
@@ -79,23 +100,26 @@ async def profile_update_check():
     """
     
     config: ConfigParser = get_config()
-    sleep_interval_seconds = config.getint('refesh_profiles_time')
+    sleep_interval_seconds = config.getint('time', 'refesh_profiles_time')
+    one_execution = True
 
-    while True:
+    while True and (loop or one_execution):
+        one_execution = False
         session: Session = DatabaseConnection.create_session()
         profile_repo: ProfileRepository = ProfileRepository(session=session)
         profile_list: List[Profile] = profile_repo.get_all_profile()
 
         for profile in profile_list:
-            actual_description: str = get_profile_description(profile.name)
+            actual_description: str = get_profile_description_mock(profile.url)
 
             if actual_description is None or actual_description == profile.last_description:
                 continue
 
-            if send_notification(profile.name):
+            if send_notification(profile.url, mock=True):
                 profile.last_description = actual_description
                 profile_repo.create_profile_from_model(profile)
-
+        
+        session.commit()
         session.close()
         sleep(sleep_interval_seconds)
 
@@ -103,9 +127,15 @@ async def profile_update_check():
 async def start_backgroud_task():
     """
     Event handler to start the background task on FastAPI startup.
-    Adds the profile_update_check task to the BackgroundTasks to run on startup.
+    # Adds the profile_update_check task to the BackgroundTasks to run on startup.
     """
     bg_tasks.add_task(profile_update_check)
+
+
+@webhook_router.get("/check", response_model=int)
+async def check_profiles():
+    await profile_update_check(loop=False)
+    return 200
 
 bg_tasks = BackgroundTasks()
 

@@ -1,17 +1,18 @@
+from copy import copy
 from typing import List
 from fastapi import Depends, APIRouter, HTTPException
 from sqlalchemy.orm import Session
 
 from src.db_connection.database import DatabaseConnection
 from src.repository.linkedin_profile_crud import ProfileRepository
-from src.schemas.linkedin_profile import ProfileSchema, ProfileSchemaModel
+from src.schemas.linkedin_profile import ProfileSchema, ProfileSchemaCreate, ProfileSchemaModel
 from src.models.linkedin_profile_model import Profile
 
 
-profile_router = APIRouter(prefix='/user')
+profile_router = APIRouter(prefix='/profile')
 
-@profile_router.post("/profiles/", response_model=int)
-def create_profile(profile: ProfileSchema, session: Session = Depends(DatabaseConnection.create_session)):
+@profile_router.post("/create", response_model=int)
+def create_profile(profile: ProfileSchemaCreate, session: Session = Depends(DatabaseConnection.create_session)):
     """
     Create a new LinkedIn profile in the database.
 
@@ -22,16 +23,12 @@ def create_profile(profile: ProfileSchema, session: Session = Depends(DatabaseCo
     Returns:
     The ID of the created profile.
     """
-
     profile_repo = ProfileRepository(session=session)
-
-    if profile.is_active is None:
-        profile.is_active = True
 
     profile_model: Profile = profile_repo.create_profile(profile)
     profile_repo.session.commit()
     profile_repo.session.close()
-    return profile_model.id
+    return 200
 
 @profile_router.get("/profiles/{profile_id}", response_model=ProfileSchemaModel)
 def read_profile(profile_id: int, session: Session = Depends(DatabaseConnection.create_session)):
@@ -49,7 +46,7 @@ def read_profile(profile_id: int, session: Session = Depends(DatabaseConnection.
     """
     profile_repo: ProfileRepository = ProfileRepository(session=session)
     
-    profile: Profile = profile_repo.get_filtered_by_id(id=profile_id)
+    profile: Profile = profile_repo.get_filtered_by_id(id_=profile_id)
     if profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")
     
@@ -74,7 +71,7 @@ def read_profiles(limit: int = 100, session: Session = Depends(DatabaseConnectio
     profile_repo.session.close()
     return profiles
 
-@profile_router.put("/profiles/{profile_id}", response_model=ProfileSchemaModel)
+@profile_router.put("/profiles/{profile_id}", response_model=int)
 def update_profile(profile_id: int, 
                    updated_profile: ProfileSchema, 
                    session: Session = Depends(DatabaseConnection.create_session)
@@ -95,16 +92,18 @@ def update_profile(profile_id: int,
     if profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")
     
+    if updated_profile.last_description == '':
+        updated_profile.last_description = profile.last_description
+
     profile.url = updated_profile.url
     profile.last_description = updated_profile.last_description
     profile.is_active = updated_profile.is_active
     
+    profile_repo.create_profile_from_model(profile)
+
     profile_repo.session.commit()
-    profile_repo.session.refresh(profile)
-
-
     profile_repo.session.close()
-    return profile
+    return 200
 
 @profile_router.delete("/profiles/{profile_id}", response_model=int)
 def delete_profile(profile_id: int, session: Session = Depends(DatabaseConnection.create_session)):
@@ -119,7 +118,7 @@ def delete_profile(profile_id: int, session: Session = Depends(DatabaseConnectio
     The ID of the deleted profile after committing the deletion.
     """
     profile_repo: ProfileRepository = ProfileRepository(session=session)
-    profile: Profile = profile_repo.get_filtered_by_id(id=profile_id)
+    profile: Profile = profile_repo.get_filtered_by_id(id_=profile_id)
     if profile is None:
         raise HTTPException(status_code=404, detail="Profile not found")
     

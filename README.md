@@ -89,3 +89,6 @@ The API includes a background task setup to run at specified intervals to check 
 - Refining the notification system to include more details or integrate with other services like email.
 - Enhancing security features to protect the stored profile data.
 
+Due time limit restriction some compomise have been made. A proper security user AOuth and token sistem should have been implemented. A proper database is needed, a sqlite database is added in order to test the API. As a server we are using uvicorn, the standar ASGI server for fastAPI development. It can be used for production porpuses but depending on the usage another software may be needed. I added test to the main funtions of the API in order to valide them.
+
+Unfortunedly LinkedinApi is not open and to use it you must request access with processing time way longer than this proyect will take. Scrping LinkedIn was an option but LinkedIn do not allow scraping his website so in order to keep this proyecto business friendly a mock was implemented and to complete this API funcionalities, all the required LinkedIn API impementations must be done.
