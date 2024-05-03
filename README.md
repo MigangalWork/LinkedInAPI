@@ -57,7 +57,7 @@ The docker file launch configuration will overwrite the .env host, port and relo
 ### Endpoints
 
 #### 1. Add LinkedIn Profile
-- **URL**: `/profile/`
+- **URL**: `/profile/create`
 - **Method**: `POST`
 - **Body**:
   ```json
@@ -67,9 +67,12 @@ The docker file launch configuration will overwrite the .env host, port and relo
   ```
 
 #### 2. Check for Updates
-- **URL**: `/check-updates`
+- **URL**: `/check`
 - **Method**: `GET`
 - The system automatically checks for updates every 2 minutes
+
+
+All the other endpoints can be seen in `/docs` where the fastAPI integrated OpenAPI documentation is generated.
 
 ### Environment Variables
 - **DATABASE_HOST**: Hostname for the database connection
@@ -89,7 +92,11 @@ The API includes a background task setup to run at specified intervals to check 
 - Refining the notification system to include more details or integrate with other services like email.
 - Enhancing security features to protect the stored profile data.
 
-
+# Summary of the project
 Due to time constraints, compromises had to be made. A security system including OAuth and token authentication should have been implemented, for different users if needed. For testing purposes, a SQLite database has been incorporated. We're utilizing uvicorn as our server, the standard ASGI server for fastAPI development. While suitable for production in certain cases, depending on usage, alternative software may be necessary. Tests have been added to validate the main functions of the API.
 
 Unfortunately, the LinkedIn API is not openly accessible. To utilize it, you must request access, a process that takes considerably longer than the timeframe of this project. Scraping LinkedIn was considered, but the platform prohibits scraping its website. To maintain the proyect business friendliness, a mock solution was implemented. To fully integrate the API functionalities, all necessary LinkedIn API implementations must be developed.
+
+This API can be deployed using any container orchestrator. The easiest implementation would involve an AWS EC2 instance with an RDS database or an ECS deployment.
+
+This architecture was chosen for its simplicity and rapid development, considering the estimated 4-hour development time and available resources. Other options considered included a lambda function paired with Amazon API Gateway, which is a more cloud-native solution, but given the time and resources available, it was not an option."
