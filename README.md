@@ -12,7 +12,7 @@ This API is built using FastAPI and SQLAlchemy. It's designed to manage LinkedIn
 ## Installation without docker
 1. **Clone this repository**:
    ```
-   git clone https://your-repository-url.git
+   git clone https://github.com/MigangalWork/LinkedInAPI
    cd your-repository-directory
    ```
 
@@ -38,7 +38,7 @@ This API is built using FastAPI and SQLAlchemy. It's designed to manage LinkedIn
 ## Usage
 1. **Clone this repository**:
    ```
-   git clone https://your-repository-url.git
+   git clone https://github.com/MigangalWork/LinkedInAPI
    cd your-repository-directory
   ```
 2. **Set up the env and the database**:
